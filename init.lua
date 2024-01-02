@@ -88,7 +88,7 @@ require('lazy').setup({
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', opts = {} },
+      { 'j-hui/fidget.nvim',       opts = {} },
 
       -- Additional lua configuration, makes nvim stuff amazing!
       'folke/neodev.nvim',
@@ -189,14 +189,7 @@ require('lazy').setup({
     },
   },
 
-  {
-    -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
-    priority = 1000,
-    config = function()
-      vim.cmd.colorscheme 'onedark'
-    end,
-  },
+  { "catppuccin/nvim",      name = "catppuccin", priority = 1000 },
 
   {
     -- Set lualine as statusline
@@ -205,7 +198,7 @@ require('lazy').setup({
     opts = {
       options = {
         icons_enabled = false,
-        theme = 'onedark',
+        theme = 'catppuccin',
         component_separators = '|',
         section_separators = '',
       },
@@ -221,6 +214,63 @@ require('lazy').setup({
     opts = {},
   },
 
+  {
+    "folke/todo-comments.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {
+      highlight = {
+        after = "",
+      },
+    },
+    event = "VeryLazy",
+    keys = {
+      {
+        "<leader>T",
+        "<cmd>TodoTelescope keywords=TODO,NOTE,BUG,ISSUE,WARN,HACK,OPTIM,TEST<cr>",
+        desc = "Open TODOs in Telescope",
+      },
+    },
+  },
+  {
+    "mbbill/undotree",
+    cmd = { "UndotreeToggle" },
+    -- set undotree_SetFocusWhenToggle to 1 to automatically focus on the undo tree
+    config = function() vim.g.undotree_SetFocusWhenToggle = 1 end,
+    keys = {
+      { "<leader><F5>", "<cmd>UndotreeToggle<cr>", desc = "Toggle undo tree" },
+    },
+  },
+  {
+    "christoomey/vim-tmux-navigator",
+    lazy = false,
+  },
+  {
+    "cameron-wags/rainbow_csv.nvim",
+    config = true,
+    ft = {
+      "csv",
+      "tsv",
+      "csv_semicolon",
+      "csv_whitespace",
+      "csv_pipe",
+      "rfc_csv",
+      "rfc_semicolon",
+    },
+    cmd = {
+      "RainbowDelim",
+      "RainbowDelimSimple",
+      "RainbowDelimQuoted",
+      "RainbowMultiDelim",
+    },
+  },
+  {
+    "iamcco/markdown-preview.nvim",
+    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+    ft = { "markdown" },
+    build = function() vim.fn["mkdp#util#install"]() end,
+  },
+
+  -- TODO: setup better keymaps for comments
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
 
@@ -278,9 +328,16 @@ vim.o.hlsearch = false
 
 -- Make line numbers default
 vim.wo.number = true
+vim.wo.relativenumber = true
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
+
+vim.cmd.colorscheme "catppuccin"
+
+vim.opt.spelllang = "en_us"
+vim.opt.spell = true
+vim.opt.scrolloff = 8
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -320,11 +377,29 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+vim.keymap.set("i", "jj", "<ESC>", { silent = true })
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+
+-- add new line without going into insert mode
+vim.keymap.set('n', '<leader>o', 'o<Esc>0"_D', { desc = "add new line below" })
+vim.keymap.set('n', '<leader>O', 'O<Esc>0"_D', { desc = "add new line above" })
+
+-- tmux navigation mappings
+vim.keymap.set('n', '<C-h>', "<cmd> TmuxNavigateLeft<cr>", { desc = "windows left" })
+vim.keymap.set('n', '<C-l>', "<cmd> TmuxNavigateRight<cr>", { desc = "windows right" })
+vim.keymap.set('n', '<C-j>', "<cmd> TmuxNavigateDown<cr>", { desc = "windows down" })
+vim.keymap.set('n', '<C-k>', "<cmd> TmuxNavigateUp<cr>", { desc = "windows up" })
+
+-- replace word under cursor with buffer contents without replacing it
+vim.keymap.set('n', '<leader>v', 'viw"0p', { desc = "replace word under cursor" })
+
+-- quick save
+vim.keymap.set('n', "<C-s>", ":w!<cr>", { desc = "Save File" })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -529,6 +604,8 @@ local on_attach = function(_, bufnr)
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
   end, { desc = 'Format current buffer with LSP' })
+
+  vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
 end
 
 -- document existing key chains
@@ -575,7 +652,7 @@ local servers = {
       workspace = { checkThirdParty = false },
       telemetry = { enable = false },
       -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-      -- diagnostics = { disable = { 'missing-fields' } },
+      diagnostics = { disable = { 'missing-fields' } },
     },
   },
 }
