@@ -76,6 +76,11 @@ require('lazy').setup({
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
+  {
+    "folke/neoconf.nvim",
+    opts = {},
+  },
+
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -110,6 +115,11 @@ require('lazy').setup({
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
     },
+  },
+
+  {
+    'stevearc/dressing.nvim',
+    opts = {},
   },
 
   -- Useful plugin to show you pending keybinds.
