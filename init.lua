@@ -134,6 +134,7 @@ require('lazy').setup({
       -- Adds LSP completion capabilities
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'hrsh7th/cmp-buffer',
 
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
@@ -428,11 +429,26 @@ vim.keymap.set("i", "jj", "<ESC>", { silent = true })
 -- file explorer
 vim.keymap.set('n', '<leader>e', "<cmd>Ex<cr>", { desc = "File [e]xplorer" })
 
--- Diagnostic keymaps
+-- Diagnostic key maps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>lD', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+
+-- boarded diagnostics window
+vim.diagnostic.config {
+  signs = true,
+  underline = true,
+  virtual_text = false,
+  virtual_lines = false,
+  update_in_insert = true,
+  float = {
+    -- UI.
+    header = false,
+    border = 'rounded',
+    focusable = true,
+  },
+}
 
 -- add new line without going into insert mode
 vim.keymap.set('n', '<leader>o', 'o<Esc>0"_D', { desc = "add new line below" })
@@ -752,6 +768,13 @@ mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
 }
 
+
+local handlers = {
+  ["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" }),
+  ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" }),
+}
+
+
 mason_lspconfig.setup_handlers {
   function(server_name)
     require('lspconfig')[server_name].setup {
@@ -759,6 +782,7 @@ mason_lspconfig.setup_handlers {
       on_attach = on_attach,
       settings = servers[server_name],
       filetypes = (servers[server_name] or {}).filetypes,
+      handlers = handlers,
     }
   end,
 }
@@ -813,6 +837,11 @@ cmp.setup {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
     { name = 'path' },
+    { name = 'buffer' },
+  },
+  window = {
+    completion = cmp.config.window.bordered(),
+    documentation = cmp.config.window.bordered(),
   },
 }
 
