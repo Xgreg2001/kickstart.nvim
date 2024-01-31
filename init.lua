@@ -87,8 +87,7 @@ require('lazy').setup({
     "xiyaowong/transparent.nvim",
     opts = {
       extra_groups = {
-        "NormalFloat",    -- plugins which have float panel such as Lazy, Mason, LspInfo
-        "NvimTreeNormal", -- NvimTree
+        "NormalFloat",
         "Comment",
       },
     },
@@ -319,6 +318,77 @@ require('lazy').setup({
     opts = {} -- this is equalent to setup({}) function
   },
 
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    branch = "v3.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+      "MunifTanjim/nui.nvim",
+      "3rd/image.nvim",              -- Optional image support in preview window: See `# Preview Mode` for more information
+    },
+    opts = {
+      commands = {
+        parent_or_close = function(state)
+          local node = state.tree:get_node()
+          if (node.type == "directory" or node:has_children()) and node:is_expanded() then
+            state.commands.toggle_node(state)
+          else
+            require("neo-tree.ui.renderer").focus_node(state, node:get_parent_id())
+          end
+        end,
+        child_or_open = function(state)
+          local node = state.tree:get_node()
+          if node.type == "directory" or node:has_children() then
+            if not node:is_expanded() then -- if unexpanded, expand
+              state.commands.toggle_node(state)
+            else                           -- if expanded and has children, seleect the next child
+              require("neo-tree.ui.renderer").focus_node(state, node:get_child_ids()[1])
+            end
+          else -- if not a directory just open it
+            state.commands.open(state)
+          end
+        end,
+        find_in_dir = function(state)
+          local node = state.tree:get_node()
+          local path = node:get_id()
+          require("telescope.builtin").find_files {
+            cwd = node.type == "directory" and path or vim.fn.fnamemodify(path, ":h"),
+          }
+        end,
+      },
+      window = {
+        width = 30,
+        mapping_options = {
+          noremap = true,
+          nowait = true,
+        },
+        mappings = {
+          ["<space>"] = false, -- disable space until we figure out which-key disabling
+          ["[b"] = "prev_source",
+          ["]b"] = "next_source",
+          ["F"] = "find_in_dir",
+          ["h"] = "parent_or_close",
+          ["l"] = "child_or_open",
+          ["o"] = "open",
+        },
+        fuzzy_finder_mappings = { -- define keymaps for filter popup window in fuzzy_finder_mode
+          ["<C-j>"] = "move_cursor_down",
+          ["<C-k>"] = "move_cursor_up",
+        },
+      },
+      event_handlers = {
+        {
+          event = "file_opened",
+          handler = function()
+            -- auto close
+            require("neo-tree.command").execute({ action = "close" })
+          end
+        },
+      },
+    }
+  },
+
   -- Fuzzy Finder (files, lsp, etc)
   {
     'nvim-telescope/telescope.nvim',
@@ -362,7 +432,11 @@ require('lazy').setup({
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   -- { import = 'custom.plugins' },
-}, {})
+}, {
+  ui = {
+    boarder = "single",
+  },
+})
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -427,7 +501,7 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 vim.keymap.set("i", "jj", "<ESC>", { silent = true })
 
 -- file explorer
-vim.keymap.set('n', '<leader>e', "<cmd>Ex<cr>", { desc = "File [e]xplorer" })
+vim.keymap.set('n', '<leader>e', "<cmd>Neotree toggle reveal<cr>", { desc = "File [e]xplorer" })
 
 -- Diagnostic key maps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
@@ -444,7 +518,6 @@ vim.diagnostic.config {
   update_in_insert = true,
   float = {
     -- UI.
-    header = false,
     border = 'rounded',
     focusable = true,
   },
