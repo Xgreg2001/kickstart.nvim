@@ -145,6 +145,19 @@ require('lazy').setup({
     opts = {},
   },
 
+  {
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    dependencies = { "nvim-lua/plenary.nvim" },
+  },
+
+  {
+    "startup-nvim/startup.nvim",
+    dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
+    opts = { theme = "startify" },
+    lazy = false,
+  },
+
   -- Useful plugin to show you pending keybinds.
   { 'folke/which-key.nvim',    opts = {} },
 
@@ -459,6 +472,7 @@ vim.cmd.colorscheme "catppuccin"
 vim.opt.spelllang = "en_us"
 vim.opt.spell = true
 vim.opt.scrolloff = 8
+-- vim.opt.colorcolumn = "80"
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -651,7 +665,7 @@ vim.api.nvim_create_user_command('LiveGrepGitRoot', live_grep_git_root, {})
 
 -- See `:help telescope.builtin`
 vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
+vim.keymap.set('n', '<leader>fb', require('telescope.builtin').buffers, { desc = '[f]ind existing [b]uffers' })
 vim.keymap.set('n', '<leader>/', require('telescope.builtin').current_buffer_fuzzy_find,
   { desc = '[/] Fuzzily search in current buffer' })
 
@@ -728,15 +742,15 @@ vim.defer_fn(function()
           ['[]'] = '@class.outer',
         },
       },
-      swap = {
-        enable = true,
-        swap_next = {
-          ['<leader>a'] = '@parameter.inner',
-        },
-        swap_previous = {
-          ['<leader>A'] = '@parameter.inner',
-        },
-      },
+      -- swap = {
+      --   enable = true,
+      --   swap_next = {
+      --     ['<leader>a'] = '@parameter.inner',
+      --   },
+      --   swap_previous = {
+      --     ['<leader>A'] = '@parameter.inner',
+      --   },
+      -- },
     },
   }
 end, 0)
@@ -770,7 +784,7 @@ local on_attach = function(_, bufnr)
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+  nmap('<leader>lk', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[g]oto [D]eclaration')
@@ -917,6 +931,32 @@ cmp.setup {
     documentation = cmp.config.window.bordered(),
   },
 }
+
+local harpoon = require("harpoon")
+
+harpoon:setup()
+
+vim.keymap.set("n", "<leader>a", function() harpoon:list():append() end, { desc = "Harpoon [a]ppend" })
+vim.keymap.set("n", "<leader><space>", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end,
+  { desc = "[ ] Harpoon ui" })
+
+vim.keymap.set("n", "<leader>1", function() harpoon:list():select(1) end)
+vim.keymap.set("n", "<leader>2", function() harpoon:list():select(2) end)
+vim.keymap.set("n", "<leader>3", function() harpoon:list():select(3) end)
+vim.keymap.set("n", "<leader>4", function() harpoon:list():select(4) end)
+
+wk.register({
+  ["<leader>"] = {
+    ["1"] = "which_key_ignore",
+    ["2"] = "which_key_ignore",
+    ["3"] = "which_key_ignore",
+    ["4"] = "which_key_ignore",
+  },
+})
+
+-- Toggle previous & next buffers stored within Harpoon list
+vim.keymap.set("n", "[h", function() harpoon:list():prev() end, { desc = "Harpoon previous" })
+vim.keymap.set("n", "]h", function() harpoon:list():next() end, { desc = "Harpoon next" })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
