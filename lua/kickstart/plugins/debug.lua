@@ -13,6 +13,7 @@ return {
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
+    "nvim-neotest/nvim-nio",
 
     -- Installs the debug adapters for you
     'williamboman/mason.nvim',
@@ -58,21 +59,36 @@ return {
       -- Set icons to characters that are more likely to work in every terminal.
       --    Feel free to remove or use ones that you like more! :)
       --    Don't feel like these are good choices.
-      icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
-      controls = {
-        icons = {
-          pause = '⏸',
-          play = '▶',
-          step_into = '⏎',
-          step_over = '⏭',
-          step_out = '⏮',
-          step_back = 'b',
-          run_last = '▶▶',
-          terminate = '⏹',
-          disconnect = '⏏',
-        },
-      },
+      -- icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
+      -- controls = {
+      --   icons = {
+      --     pause = '⏸',
+      --     play = '▶',
+      --     step_into = '⏎',
+      --     step_over = '⏭',
+      --     step_out = '⏮',
+      --     step_back = 'b',
+      --     run_last = '▶▶',
+      --     terminate = '⏹',
+      --     disconnect = '⏏',
+      --   },
+      -- },
     }
+
+    vim.api.nvim_set_hl(0, "blue", { fg = "#3d59a1" })
+    vim.api.nvim_set_hl(0, "green", { fg = "#9ece6a" })
+    vim.api.nvim_set_hl(0, "yellow", { fg = "#FFFF00" })
+    vim.api.nvim_set_hl(0, "orange", { fg = "#f09000" })
+
+    vim.fn.sign_define('DapBreakpoint',
+      { text = '●', texthl = 'blue' })
+    vim.fn.sign_define('DapBreakpointCondition',
+      { text = '●', texthl = 'blue' })
+    vim.fn.sign_define('DapBreakpointRejected',
+      { text = '●', texthl = 'orange' })
+    vim.fn.sign_define('DapStopped', { text = '●', texthl = 'green' })
+    vim.fn.sign_define('DapLogPoint',
+      { text = '●', texthl = 'yellow' })
 
     -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
     vim.keymap.set('n', '<F7>', dapui.toggle, { desc = 'Debug: See last session result.' })
