@@ -572,18 +572,16 @@ vim.keymap.set('n', '<leader>O', 'O<Esc>0"_D', { desc = "add new line above" })
 local wk = require("which-key")
 
 -- plugins / lazy keymaps:
-wk.register({
-  p = {
-    name = "[p]lugins",
-    i = { function() require("lazy").install() end, "[p]lugins [i]nstall" },
-    s = { function() require("lazy").home() end, "[p]lugins [s]tatus" },
-    S = { function() require("lazy").sync() end, "[p]lugins [S]ync" },
-    u = { function() require("lazy").check() end, "[p]lugins check [u]pdates" },
-    U = { function() require("lazy").update() end, "[p]lugins [U]pdate" },
-    m = { "<cmd>Mason<cr>", "[p]lugins: [m]ason installer" },
-    M = { "<cmd>MasonUpdateAll<cr>", "[p]lugins: [M]ason update" }
-  }
-}, { prefix = "<leader>" })
+wk.add({
+  { "<leader>p",  group = "[p]lugins" },
+  { "<leader>pM", "<cmd>MasonUpdateAll<cr>",                desc = "[p]lugins: [M]ason update" },
+  { "<leader>pS", function() require("lazy").home() end,    desc = "[p]lugins [S]ync" },
+  { "<leader>pU", function() require("lazy").update() end,  desc = "[p]lugins [U]pdate" },
+  { "<leader>pi", function() require("lazy").install() end, desc = "[p]lugins [i]nstall" },
+  { "<leader>pm", "<cmd>Mason<cr>",                         desc = "[p]lugins: [m]ason installer" },
+  { "<leader>ps", function() require("lazy").sync() end,    desc = "[p]lugins [s]tatus" },
+  { "<leader>pu", function() require("lazy").update() end,  desc = "[p]lugins check [u]pdates" },
+})
 
 vim.keymap.set('n', '<leader>w', "<cmd>w<cr>", { desc = "[w]rite file" })
 vim.keymap.set('n', '<leader>q', "<cmd>confirm q<cr>", { desc = "[q]uit" })
@@ -824,19 +822,25 @@ local on_attach = function(_, bufnr)
 end
 
 -- document existing key chains
-require('which-key').register {
-  ['<leader>h'] = { name = 'Git [H]unk', _ = 'which_key_ignore' },
-  ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
-  ['<leader>f'] = { name = '[F]ind', _ = 'which_key_ignore' },
-  ['<leader>t'] = { name = '[T]oggle', _ = 'which_key_ignore' },
-  ['<leader>l'] = { name = '[L]SP', _ = 'which_key_ignore' },
-}
+require('which-key').add({
+  { "<leader>f",  group = "[F]ind" },
+  { "<leader>f_", hidden = true },
+  { "<leader>g",  group = "[G]it" },
+  { "<leader>g_", hidden = true },
+  { "<leader>h",  group = "Git [H]unk" },
+  { "<leader>h_", hidden = true },
+  { "<leader>l",  group = "[L]SP" },
+  { "<leader>l_", hidden = true },
+  { "<leader>t",  group = "[T]oggle" },
+  { "<leader>t_", hidden = true },
+})
+
 -- register which-key VISUAL mode
 -- required for visual <leader>hs (hunk stage) to work
-require('which-key').register({
-  ['<leader>'] = { name = 'VISUAL <leader>' },
-  ['<leader>h'] = { 'Git [H]unk' },
-}, { mode = 'v' })
+require('which-key').add({
+  { "<leader>",  group = "VISUAL <leader>", mode = "v" },
+  { "<leader>h", desc = "Git [H]unk",       mode = "v" },
+})
 
 -- mason-lspconfig requires that these setup functions are called in this order
 -- before setting up the servers.
@@ -968,13 +972,11 @@ vim.keymap.set("n", "<leader>2", function() harpoon:list():select(2) end)
 vim.keymap.set("n", "<leader>3", function() harpoon:list():select(3) end)
 vim.keymap.set("n", "<leader>4", function() harpoon:list():select(4) end)
 
-wk.register({
-  ["<leader>"] = {
-    ["1"] = "which_key_ignore",
-    ["2"] = "which_key_ignore",
-    ["3"] = "which_key_ignore",
-    ["4"] = "which_key_ignore",
-  },
+wk.add({
+  { "<leader>1", hidden = true },
+  { "<leader>2", hidden = true },
+  { "<leader>3", hidden = true },
+  { "<leader>4", hidden = true },
 })
 
 -- Toggle previous & next buffers stored within Harpoon list
