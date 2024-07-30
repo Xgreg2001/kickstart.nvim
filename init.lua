@@ -645,6 +645,8 @@ require('telescope').setup {
       i = {
         ['<C-u>'] = false,
         ['<C-d>'] = false,
+        ['<Tab>'] = require('telescope.actions').move_selection_next,
+        ['<S-Tab>'] = require('telescope.actions').move_selection_previous,
       },
     },
   },
@@ -963,7 +965,7 @@ local harpoon = require("harpoon")
 
 harpoon:setup()
 
-vim.keymap.set("n", "<leader>a", function() harpoon:list():append() end, { desc = "Harpoon [a]ppend" })
+vim.keymap.set("n", "<leader>a", function() harpoon:list():add() end, { desc = "Harpoon [a]dd" })
 vim.keymap.set("n", "<leader><space>", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end,
   { desc = "[ ] Harpoon ui" })
 
