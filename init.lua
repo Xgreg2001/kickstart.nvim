@@ -457,6 +457,29 @@ require('lazy').setup({
     build = ':TSUpdate',
   },
 
+  {
+    "folke/trouble.nvim",
+    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    cmd = "Trouble",
+    keys = {
+      {
+        "<leader>ld",
+        "<cmd>Trouble diagnostics toggle<cr>",
+        desc = "Diagnostics (Trouble)",
+      },
+      {
+        "<leader>lD",
+        "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+        desc = "Buffer Diagnostics (Trouble)",
+      },
+      {
+        "<leader>ls",
+        "<cmd>Trouble symbols toggle focus=false<cr>",
+        desc = "Symbols (Trouble)",
+      },
+    },
+  },
+
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
@@ -549,7 +572,7 @@ vim.keymap.set('n', '<leader>e', "<cmd>Neotree toggle reveal<cr>", { desc = "Fil
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-vim.keymap.set('n', '<leader>lD', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+-- vim.keymap.set('n', '<leader>lD', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- boarded diagnostics window
 vim.diagnostic.config {
@@ -806,8 +829,8 @@ local on_attach = function(_, bufnr)
   nmap('gd', require('telescope.builtin').lsp_definitions, '[g]oto [d]efinition')
   nmap('gr', require('telescope.builtin').lsp_references, '[g]oto [r]eferences')
   nmap('gI', require('telescope.builtin').lsp_implementations, '[g]oto [I]mplementation')
-  nmap('<leader>ld', require('telescope.builtin').lsp_type_definitions, 'type [d]efinition')
-  nmap('<leader>ls', require('telescope.builtin').lsp_document_symbols, 'document [s]ymbols')
+  -- nmap('<leader>ld', require('telescope.builtin').lsp_type_definitions, 'type [d]efinition')
+  -- nmap('<leader>ls', require('telescope.builtin').lsp_document_symbols, 'document [s]ymbols')
   nmap('<leader>ly', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'workspace s[y]mbols')
 
   -- See `:help K` for why this keymap
