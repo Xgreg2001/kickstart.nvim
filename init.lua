@@ -158,8 +158,7 @@ require('lazy').setup({
       {
         "<leader>ch",
         function()
-          local actions = require("CopilotChat.actions")
-          require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
+          require("CopilotChat").select_prompt()
         end,
         desc = "CopilotChat - Help actions",
       },
@@ -167,8 +166,7 @@ require('lazy').setup({
       {
         "<leader>cp",
         function()
-          local actions = require("CopilotChat.actions")
-          require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
+          require("CopilotChat").select_prompt()
         end,
         desc = "CopilotChat - Prompt actions",
       },
@@ -712,8 +710,10 @@ vim.keymap.set("i", "jj", "<ESC>", { silent = true })
 vim.keymap.set('n', '<leader>e', "<cmd>Neotree toggle reveal<cr>", { desc = "File [e]xplorer" })
 
 -- Diagnostic key maps
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
+vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1, float = true }) end,
+  { desc = 'Go to previous diagnostic message' })
+vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = 1, float = true }) end,
+  { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 -- vim.keymap.set('n', '<leader>lD', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
@@ -796,11 +796,11 @@ local lazygit  = Terminal:new({
   end,
 })
 
-function _lazygit_toggle()
-  lazygit:toggle()
-end
 
-vim.api.nvim_set_keymap("n", "<leader>gg", "<cmd>lua _lazygit_toggle()<CR>",
+vim.keymap.set("n", "<leader>gg",
+  function()
+    lazygit:toggle()
+  end,
   { desc = "Toggle LazyGit", noremap = true, silent = true })
 
 -- [[ Configure Telescope ]]
@@ -977,8 +977,8 @@ local on_attach = function(_, bufnr)
   nmap('<leader>ly', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'workspace s[y]mbols')
 
   -- See `:help K` for why this keymap
-  nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<leader>lk', vim.lsp.buf.signature_help, 'Signature Documentation')
+  nmap('K', function() vim.lsp.buf.hover({ border = "rounded" }) end, 'Hover Documentation')
+  nmap('<leader>lk', function() vim.lsp.buf.signature_help({ border = "rounded" }) end, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[g]oto [D]eclaration')
@@ -1061,12 +1061,10 @@ mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
 }
 
-
 local handlers = {
-  ["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" }),
-  ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" }),
+  ["textDocument/hover"] = vim.lsp.buf.hover({ border = "rounded" }),
+  ["textDocument/signatureHelp"] = vim.lsp.buf.signature_help({ border = "rounded" }),
 }
-
 
 mason_lspconfig.setup_handlers {
   function(server_name)
@@ -1088,7 +1086,7 @@ require('luasnip.loaders.from_vscode').lazy_load()
 luasnip.config.setup {}
 
 local has_words_before = function()
-  if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then return false end
+  if vim.api.nvim_get_option_value("buftype", {}) == "prompt" then return false end
   local line, col = unpack(vim.api.nvim_win_get_cursor(0))
   return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match("^%s*$") == nil
 end
