@@ -94,6 +94,148 @@ require('lazy').setup({
     lazy = false,
   },
 
+  {
+    "CopilotC-Nvim/CopilotChat.nvim",
+    dependencies = {
+      -- { "github/copilot.vim" }, -- or zbirenbaum/copilot.lua
+      { "nvim-lua/plenary.nvim",        branch = "master" }, -- for curl, log and async functions
+      { "nvim-telescope/telescope.nvim" },
+    },
+    build = "make tiktoken", -- Only on MacOS or Linux
+    opts = {
+      -- See Configuration section for options
+      model = 'claude-3.5-sonnet',
+      chat_autocomplete = false,
+      -- debug = true, -- Enable debugging
+      show_help = true, -- Show help actions
+      window = {
+        width = 0.4,
+      },
+      -- auto_follow_cursor = false,    -- Don't follow the cursor after getting response
+      mappings = {
+        reset = {
+          normal = '',
+          insert = '',
+        },
+      },
+    },
+
+    config = function(_, opts)
+      local chat = require("CopilotChat")
+      local select = require("CopilotChat.select")
+      -- Use unnamed register for the selection
+      opts.selection = select.unnamed
+
+      chat.setup(opts)
+
+      vim.api.nvim_create_user_command("CopilotChatVisual", function(args)
+        chat.ask(args.args, { selection = select.visual })
+      end, { nargs = "*", range = true })
+
+      -- Inline chat with Copilot
+      vim.api.nvim_create_user_command("CopilotChatInline", function(args)
+        chat.ask(args.args, {
+          selection = select.visual,
+          window = {
+            layout = "float",
+            relative = "cursor",
+            width = 1,
+            height = 0.4,
+            row = 1,
+          },
+        })
+      end, { nargs = "*", range = true })
+
+      -- Restore CopilotChatBuffer
+      vim.api.nvim_create_user_command("CopilotChatBuffer", function(args)
+        chat.ask(args.args, { selection = select.buffer })
+      end, { nargs = "*", range = true })
+    end,
+
+    event = "VeryLazy",
+    keys = {
+      -- Show help actions with telescope
+      {
+        "<leader>ch",
+        function()
+          local actions = require("CopilotChat.actions")
+          require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
+        end,
+        desc = "CopilotChat - Help actions",
+      },
+      -- Show prompts actions with telescope
+      {
+        "<leader>cp",
+        function()
+          local actions = require("CopilotChat.actions")
+          require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
+        end,
+        desc = "CopilotChat - Prompt actions",
+      },
+      -- Code related commands
+      { "<leader>ce", "<cmd>CopilotChatExplain<cr>",       desc = "CopilotChat - Explain code" },
+      { "<leader>ct", "<cmd>CopilotChatTests<cr>",         desc = "CopilotChat - Generate tests" },
+      { "<leader>cr", "<cmd>CopilotChatReview<cr>",        desc = "CopilotChat - Review code" },
+      -- { "<leader>cR", "<cmd>CopilotChatRefactor<cr>",      desc = "CopilotChat - Refactor code" },
+      { "<leader>cn", "<cmd>CopilotChatBetterNamings<cr>", desc = "CopilotChat - Better Naming" },
+      -- Chat with Copilot in visual mode
+      {
+        "<leader>cv",
+        ":CopilotChatVisual",
+        mode = "x",
+        desc = "CopilotChat - Open in vertical split",
+      },
+      {
+        "<leader>cx",
+        ":CopilotChatInline<cr>",
+        mode = "x",
+        desc = "CopilotChat - Inline chat",
+      },
+      -- Custom input for CopilotChat
+      {
+        "<leader>ci",
+        function()
+          local input = vim.fn.input("Ask Copilot: ")
+          if input ~= "" then
+            vim.cmd("CopilotChat " .. input)
+          end
+        end,
+        desc = "CopilotChat - Ask input",
+      },
+      -- Generate commit message based on the git diff
+      {
+        "<leader>cm",
+        "<cmd>CopilotChatCommit<cr>",
+        desc = "CopilotChat - Generate commit message for all changes",
+      },
+      {
+        "<leader>cM",
+        "<cmd>CopilotChatCommitStaged<cr>",
+        desc = "CopilotChat - Generate commit message for staged changes",
+      },
+      -- Quick chat with Copilot
+      {
+        "<leader>cq",
+        function()
+          local input = vim.fn.input("Quick Chat: ")
+          if input ~= "" then
+            vim.cmd("CopilotChatBuffer " .. input)
+          end
+        end,
+        desc = "CopilotChat - Quick chat",
+      },
+      -- Debug
+      { "<leader>cd", "<cmd>CopilotChatDebugInfo<cr>",     desc = "CopilotChat - Debug Info" },
+      -- Fix the issue with diagnostic
+      { "<leader>cf", "<cmd>CopilotChatFixDiagnostic<cr>", desc = "CopilotChat - Fix Diagnostic" },
+      -- Clear buffer and chat history
+      { "<leader>cl", "<cmd>CopilotChatReset<cr>",         desc = "CopilotChat - Clear buffer and chat history" },
+      -- Toggle Copilot Chat Vsplit
+      { "<leader>cv", "<cmd>CopilotChatToggle<cr>",        desc = "CopilotChat - Toggle Vsplit" },
+
+    },
+  },
+
   { 'Bekaboo/deadcolumn.nvim' },
 
   {
@@ -521,6 +663,7 @@ vim.cmd.colorscheme "catppuccin"
 vim.opt.spelllang = "en_us"
 vim.opt.spell = true
 vim.opt.scrolloff = 8
+vim.opt.spr = true
 -- vim.opt.colorcolumn = "80"
 
 -- Sync clipboard between OS and Neovim.
@@ -884,7 +1027,13 @@ local servers = {
   -- clangd = {},
   -- gopls = {},
   -- pyright = {},
-  -- rust_analyzer = {},
+  rust_analyzer = {
+    ["rust-analyzer"] = {
+      checkOnSave = {
+        command = "clippy",
+      },
+    },
+  },
   -- tsserver = {},
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },
 
